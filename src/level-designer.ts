@@ -10,8 +10,25 @@ import { LevelData } from './game-engine';
  */
 export class LevelDesigner {
   private grid: string[];
-  constructor(private width: number, private height: number) {
-    this.grid = Array.from({ length: height }, () => '.'.repeat(width));
+  constructor(
+    private width: number,
+    private height: number,
+    grid?: string[]
+  ) {
+    if (grid) {
+      if (grid.length !== height)
+        throw new Error('Grid height mismatch');
+      if (grid.some((row) => row.length !== width))
+        throw new Error('Grid width mismatch');
+      this.grid = grid.slice();
+    } else {
+      this.grid = Array.from({ length: height }, () => '.'.repeat(width));
+    }
+  }
+
+  /** Create a designer pre-populated from existing {@link LevelData}. */
+  static fromData(data: LevelData): LevelDesigner {
+    return new LevelDesigner(data.width, data.height, data.grid);
   }
 
   /** Mark a cell as a solid block. */
