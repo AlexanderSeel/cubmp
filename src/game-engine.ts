@@ -118,6 +118,36 @@ export function buildLevel(
     );
     app.root.addChild(goal);
   }
+=======
+      if (ch === 'S') {
+        const block = new pc.Entity(`block-${x}-${y}`);
+        block.addComponent('render', { type: 'box' });
+        block.addComponent('collision', { type: 'box' });
+        block.addComponent('rigidbody', { type: 'static' });
+        block.setLocalScale(cellSize, cellSize, cellSize);
+        block.setLocalPosition(offsetX + x * cellSize, 0, offsetZ + y * cellSize);
+        app.root.addChild(block);
+      }
+    }
+  }
+
+  const spawnPos = new pc.Vec3(
+    offsetX + level.spawn.x * cellSize,
+    cellSize / 2,
+    offsetZ + level.spawn.y * cellSize
+  );
+
+  const goal = new pc.Entity('goal');
+  goal.addComponent('render', { type: 'box' });
+  goal.setLocalScale(cellSize, cellSize, cellSize);
+  goal.setLocalPosition(
+    offsetX + level.goal.x * cellSize,
+    cellSize / 2,
+    offsetZ + level.goal.y * cellSize
+  );
+  app.root.addChild(goal);
+
+  const enemies: pc.Vec3[] = [];
   if (level.enemies) {
     for (const e of level.enemies) {
       enemies.push(

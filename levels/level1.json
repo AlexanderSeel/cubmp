@@ -17,5 +17,8 @@
     "accent": "#ff0000"
   },
   "skybox": { "url": "/assets/skyboxes/level1.jpg", "source": "user" },
+  "spawn": { "x": 2, "y": 2 },
+  "goal": { "x": 2, "y": 4 },
+  "enemies": [{ "x": 1, "y": 3 }],
   "meta": { "difficulty": "easy", "version": 1 }
 }
