@@ -7,7 +7,7 @@
     "SSSSS",
     "S...S",
     "S.P.S",
-    "S...S",
+    "S.E.S",
     "SSGSS"
   ],
   "theme": "starter",
@@ -17,8 +17,5 @@
     "accent": "#ff0000"
   },
   "skybox": { "url": "/assets/skyboxes/level1.jpg", "source": "user" },
-  "spawn": { "x": 2, "y": 2 },
-  "goal": { "x": 2, "y": 4 },
-  "entities": [],
   "meta": { "difficulty": "easy", "version": 1 }
 }
