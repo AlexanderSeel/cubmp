@@ -42,11 +42,15 @@ export interface LevelData {
   width: number;
   height: number;
   grid: string[];
-  spawn: { x: number; y: number };
-  goal: { x: number; y: number };
+  spawn?: { x: number; y: number };
+  goal?: { x: number; y: number };
   enemies?: { x: number; y: number }[];
   palette?: { background?: string; primary?: string; accent?: string };
+  theme?: string;
+  skybox?: { url: string; source: string };
+  meta?: Record<string, unknown>;
 }
+
 export function buildLevel(
   app: pc.Application,
   level: LevelData
@@ -55,10 +59,66 @@ export function buildLevel(
   const offsetX = -(level.width * cellSize) / 2 + cellSize / 2;
   const offsetZ = -(level.height * cellSize) / 2 + cellSize / 2;
 
+  const enemies: pc.Vec3[] = [];
+  let spawnPos: pc.Vec3 | null = null;
+  let goal: pc.Entity | null = null;
+
   for (let y = 0; y < level.height; y++) {
     const row = level.grid[y];
     for (let x = 0; x < level.width; x++) {
       const ch = row[x];
+      const worldPos = new pc.Vec3(
+        offsetX + x * cellSize,
+        cellSize / 2,
+        offsetZ + y * cellSize
+      );
+      switch (ch) {
+        case 'S': {
+          const block = new pc.Entity(`block-${x}-${y}`);
+          block.addComponent('render', { type: 'box' });
+          block.addComponent('collision', { type: 'box' });
+          block.addComponent('rigidbody', { type: 'static' });
+          block.setLocalScale(cellSize, cellSize, cellSize);
+          block.setLocalPosition(worldPos);
+          app.root.addChild(block);
+          break;
+        }
+        case 'P':
+          spawnPos = worldPos.clone();
+          break;
+        case 'G':
+          goal = new pc.Entity('goal');
+          goal.addComponent('render', { type: 'box' });
+          goal.setLocalScale(cellSize, cellSize, cellSize);
+          goal.setLocalPosition(worldPos);
+          app.root.addChild(goal);
+          break;
+        case 'E':
+          enemies.push(worldPos.clone());
+          break;
+      }
+    }
+  }
+
+  if (!spawnPos && level.spawn) {
+    spawnPos = new pc.Vec3(
+      offsetX + level.spawn.x * cellSize,
+      cellSize / 2,
+      offsetZ + level.spawn.y * cellSize
+    );
+  }
+  if (!goal && level.goal) {
+    goal = new pc.Entity('goal');
+    goal.addComponent('render', { type: 'box' });
+    goal.setLocalScale(cellSize, cellSize, cellSize);
+    goal.setLocalPosition(
+      offsetX + level.goal.x * cellSize,
+      cellSize / 2,
+      offsetZ + level.goal.y * cellSize
+    );
+    app.root.addChild(goal);
+  }
+=======
       if (ch === 'S') {
         const block = new pc.Entity(`block-${x}-${y}`);
         block.addComponent('render', { type: 'box' });
@@ -98,6 +158,10 @@ export function buildLevel(
         )
       );
     }
+  }
+
+  if (!spawnPos || !goal) {
+    throw new Error('Level is missing spawn or goal');
   }
 
   return { spawn: spawnPos, goal, enemies };

@@ -8,13 +8,15 @@ import {
   LevelData
 } from './game-engine';
 import { LevelDesigner } from './level-designer';
-
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 
 async function main() {
   await initAmmo();
   const app = createApp(canvas);
 
+  const levelData: LevelData = await fetch('/levels/level1.json').then((r) =>
+    r.json()
+  );
   const designer = new LevelDesigner(5, 5);
   for (let i = 0; i < 5; i++) {
     designer.setBlock(i, 0);
@@ -26,7 +28,6 @@ async function main() {
   designer.setGoal(2, 4);
   designer.addEnemy(1, 3);
   const levelData: LevelData = designer.build();
-
   const light = new pc.Entity('light');
   light.addComponent('light', { type: 'directional', intensity: 1 });
   light.setLocalEulerAngles(45, 45, 0);
