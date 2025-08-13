@@ -13,10 +13,6 @@ const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 async function main() {
   await initAmmo();
   const app = createApp(canvas);
-
-  const levelData: LevelData = await fetch('/levels/level1.json').then((r) =>
-    r.json()
-  );
   const designer = new LevelDesigner(5, 5);
   for (let i = 0; i < 5; i++) {
     designer.setBlock(i, 0);

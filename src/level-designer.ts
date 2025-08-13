@@ -1,8 +1,7 @@
 import { LevelData } from './game-engine';
 
 /**
- * Simple in-memory level designer that lets callers mark cells and export a
- * {@link LevelData} object. The grid uses the following characters:
+ * In-memory level designer backed by a grid of characters. The grid uses:
  * - `S` for solid blocks
  * - `P` for player spawn
  * - `G` for the level goal
@@ -10,16 +9,8 @@ import { LevelData } from './game-engine';
  * - `.` for empty space
  */
 export class LevelDesigner {
-  private width: number;
-  private height: number;
   private grid: string[];
-  private spawn = { x: 0, y: 0 };
-  private goal = { x: 0, y: 0 };
-  private enemies: { x: number; y: number }[] = [];
-
-  constructor(width: number, height: number) {
-    this.width = width;
-    this.height = height;
+  constructor(private width: number, private height: number) {
     this.grid = Array.from({ length: height }, () => '.'.repeat(width));
   }
 
@@ -33,13 +24,15 @@ export class LevelDesigner {
     this.setCell(x, y, '.');
   }
 
-  /** Set the player spawn position. */
+  /** Set the player spawn position, clearing any previous spawn. */
   setSpawn(x: number, y: number): void {
+    this.clearAll('P');
     this.setCell(x, y, 'P');
   }
 
-  /** Set the goal position. */
+  /** Set the goal position, clearing any previous goal. */
   setGoal(x: number, y: number): void {
+    this.clearAll('G');
     this.setCell(x, y, 'G');
   }
 
@@ -54,9 +47,13 @@ export class LevelDesigner {
     this.grid[y] = row.join('');
   }
 
-  /**
-   * Build a {@link LevelData} object by scanning the grid for special cells.
-   */
+  private clearAll(ch: string): void {
+    for (let y = 0; y < this.height; y++) {
+      this.grid[y] = this.grid[y].replace(ch, '.');
+    }
+  }
+
+  /** Build a {@link LevelData} object by scanning the grid for special cells. */
   build(): LevelData {
     const data: LevelData = {
       width: this.width,
@@ -75,32 +72,5 @@ export class LevelDesigner {
     }
     if (enemies.length > 0) data.enemies = enemies;
     return data;
-  private setCell(x: number, y: number, ch: string): void {
-    const row = this.grid[y].split('');
-    row[x] = ch;
-    this.grid[y] = row.join('');
-  }
-
-  setSpawn(x: number, y: number): void {
-    this.spawn = { x, y };
-  }
-
-  setGoal(x: number, y: number): void {
-    this.goal = { x, y };
-  }
-
-  addEnemy(x: number, y: number): void {
-    this.enemies.push({ x, y });
-  }
-
-  build(): LevelData {
-    return {
-      width: this.width,
-      height: this.height,
-      grid: this.grid,
-      spawn: this.spawn,
-      goal: this.goal,
-      enemies: this.enemies
-    };
   }
 }
