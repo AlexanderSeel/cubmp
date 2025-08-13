@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Cubmp Level Editor</title>
+    <style>
+      #editor { width: max-content; margin-bottom: 1em; }
+      #editor button { width:30px; height:30px; }
+      .controls { margin-bottom: 1em; }
+      label { margin-right: 0.5em; }
+    </style>
+  </head>
+  <body>
+    <div class="controls">
+      <label>
+        Theme
+        <select id="theme">
+          <option value="glassy neon">Glassy Neon</option>
+          <option value="fiery castle">Fiery Castle</option>
+          <option value="ocean depths">Ocean Depths</option>
+        </select>
+      </label>
+      <label>Background <input type="color" id="background" value="#000000" /></label>
+      <label>Primary <input type="color" id="primary" value="#ffffff" /></label>
+      <label>Accent <input type="color" id="accent" value="#ff00ff" /></label>
+    </div>
+    <div id="editor"></div>
+    <button id="export">Export</button>
+    <script type="module" src="/src/level-designer-app.ts"></script>
+  </body>
+</html>
