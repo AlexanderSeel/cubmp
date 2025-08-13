@@ -29,7 +29,7 @@ async function main() {
   light.setLocalEulerAngles(45, 45, 0);
   app.root.addChild(light);
 
-  const { spawn, goal, enemies: enemySpawns } = buildLevel(app, levelData);
+  const { spawn, goal, enemies: enemySpawns } = await buildLevel(app, levelData);
   const player = await createPlayer(app, spawn);
   const enemies = enemySpawns.map((pos) => createEnemy(app, pos));
 
@@ -41,20 +41,22 @@ async function main() {
   });
   app.root.addChild(camera);
 
-  app.on('update', () => {
+  let elapsed = 0;
+  app.on('update', (dt) => {
+    elapsed += dt;
     const force = new pc.Vec3();
     const speed = 5;
-    if (app.keyboard.isPressed(pc.KEY_W)) force.z -= speed;
-    if (app.keyboard.isPressed(pc.KEY_S)) force.z += speed;
-    if (app.keyboard.isPressed(pc.KEY_A)) force.x -= speed;
-    if (app.keyboard.isPressed(pc.KEY_D)) force.x += speed;
+    if (app.keyboard!.isPressed(pc.KEY_W)) force.z -= speed;
+    if (app.keyboard!.isPressed(pc.KEY_S)) force.z += speed;
+    if (app.keyboard!.isPressed(pc.KEY_A)) force.x -= speed;
+    if (app.keyboard!.isPressed(pc.KEY_D)) force.x += speed;
     if (force.lengthSq() > 0) {
-      player.rigidbody.applyForce(force);
+      player.rigidbody!.applyForce(force);
     }
 
     enemies.forEach((enemy) => {
       const ep = enemy.getPosition();
-      enemy.setLocalPosition(ep.x + Math.sin(app.time) * 0.01, ep.y, ep.z);
+      enemy.setLocalPosition(ep.x + Math.sin(elapsed) * 0.01, ep.y, ep.z);
       if (ep.distance(player.getPosition()) < 0.5) {
         console.log('Hit by enemy');
       }
