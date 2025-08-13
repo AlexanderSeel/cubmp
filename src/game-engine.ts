@@ -32,13 +32,16 @@ async function loadGlb(app: pc.Application, url: string): Promise<pc.Entity> {
         reject(err);
         return;
       }
-      const entity = (asset as pc.Asset).resource.instantiateRenderEntity();
+      const container = (asset as pc.Asset).resource as pc.ContainerResource;
+      const entity = container.instantiateRenderEntity();
       resolve(entity);
     });
   });
 }
 
 export interface LevelData {
+  id?: string;
+  name?: string;
   width: number;
   height: number;
   grid: string[];
@@ -51,13 +54,22 @@ export interface LevelData {
   meta?: Record<string, unknown>;
 }
 
-export function buildLevel(
+export async function buildLevel(
   app: pc.Application,
   level: LevelData
-): { spawn: pc.Vec3; goal: pc.Entity; enemies: pc.Vec3[] } {
+): Promise<{ spawn: pc.Vec3; goal: pc.Entity; enemies: pc.Vec3[] }> {
   const cellSize = 1;
   const offsetX = -(level.width * cellSize) / 2 + cellSize / 2;
   const offsetZ = -(level.height * cellSize) / 2 + cellSize / 2;
+
+  const blockMat = new pc.StandardMaterial();
+  if (level.palette?.primary)
+    blockMat.diffuse.fromString(level.palette.primary);
+  blockMat.update();
+
+  const goalMat = new pc.StandardMaterial();
+  if (level.palette?.accent) goalMat.diffuse.fromString(level.palette.accent);
+  goalMat.update();
 
   const enemies: pc.Vec3[] = [];
   let spawnPos: pc.Vec3 | null = null;
@@ -75,7 +87,7 @@ export function buildLevel(
       switch (ch) {
         case 'S': {
           const block = new pc.Entity(`block-${x}-${y}`);
-          block.addComponent('render', { type: 'box' });
+          block.addComponent('render', { type: 'box', material: blockMat });
           block.addComponent('collision', { type: 'box' });
           block.addComponent('rigidbody', { type: 'static' });
           block.setLocalScale(cellSize, cellSize, cellSize);
@@ -88,7 +100,7 @@ export function buildLevel(
           break;
         case 'G':
           goal = new pc.Entity('goal');
-          goal.addComponent('render', { type: 'box' });
+          goal.addComponent('render', { type: 'box', material: goalMat });
           goal.setLocalScale(cellSize, cellSize, cellSize);
           goal.setLocalPosition(worldPos);
           app.root.addChild(goal);
@@ -109,7 +121,7 @@ export function buildLevel(
   }
   if (!goal && level.goal) {
     goal = new pc.Entity('goal');
-    goal.addComponent('render', { type: 'box' });
+    goal.addComponent('render', { type: 'box', material: goalMat });
     goal.setLocalScale(cellSize, cellSize, cellSize);
     goal.setLocalPosition(
       offsetX + level.goal.x * cellSize,
@@ -120,6 +132,29 @@ export function buildLevel(
   }
   if (!spawnPos || !goal) {
     throw new Error('Level is missing spawn or goal');
+  }
+
+  if (level.skybox) {
+    await new Promise<void>((resolve, reject) => {
+      app.assets.loadFromUrl(level.skybox!.url, 'texture', (err, asset) => {
+        if (err || !asset) {
+          reject(err);
+          return;
+        }
+        const mat = new pc.StandardMaterial();
+        mat.cull = pc.CULLFACE_FRONT;
+        mat.diffuseMap = asset.resource as pc.Texture;
+        mat.update();
+        const sky = new pc.Entity('skybox');
+        sky.addComponent('render', {
+          type: 'sphere',
+          material: mat
+        });
+        sky.setLocalScale(100, 100, 100);
+        app.root.addChild(sky);
+        resolve();
+      });
+    });
   }
 
   return { spawn: spawnPos, goal, enemies };
