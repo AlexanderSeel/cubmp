@@ -1,0 +1,56 @@
+name: Build & Deploy (FTPS to STRATO)
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install deps
+        run: npm ci
+
+      # ⬇️ Passe den Build an dein Framework an
+      # Next.js (SSG): npm run build && npm run export => Output: ./out
+      # Vite/React: npm run build => Output: ./dist
+      - name: Build
+        run: |
+          if [ -f package.json ] && grep -q "\"export\":" package.json; then
+            npm run build && npm run export
+          else
+            npm run build
+          fi
+
+      - name: Pick build dir
+        id: pickdir
+        run: |
+          if [ -d "./out" ]; then echo "dir=out" >> $GITHUB_OUTPUT; \
+          elif [ -d "./dist" ]; then echo "dir=dist" >> $GITHUB_OUTPUT; \
+          else echo "Kein Build-Ordner gefunden" && exit 1; fi
+
+      - name: Deploy via FTPS
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.STRATO_FTP_SERVER }}     # z.B. ftps.strato.com (aus STRATO UI)
+          username: ${{ secrets.STRATO_FTP_USER }}
+          password: ${{ secrets.STRATO_FTP_PASSWORD }}
+          protocol: ftps
+          port: 21
+          local-dir: ./${{ steps.pickdir.outputs.dir }}/
+          server-dir: ${{ secrets.STRATO_REMOTE_PATH }} # z.B. /httpdocs/
+          # Optional: Dateien/Ordner ausschließen
+          exclude: |
+            **/.git*
+            **/.DS_Store
+            **/node_modules/**
