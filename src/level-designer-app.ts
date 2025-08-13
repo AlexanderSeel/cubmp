@@ -10,6 +10,31 @@ editor.style.gridTemplateColumns = `repeat(${size}, 30px)`;
 
 const states = ['.', 'S', 'P', 'G', 'E'];
 
+const themeSelect = document.getElementById('theme') as HTMLSelectElement;
+const bgInput = document.getElementById('background') as HTMLInputElement;
+const primaryInput = document.getElementById('primary') as HTMLInputElement;
+const accentInput = document.getElementById('accent') as HTMLInputElement;
+
+designer.setTheme(themeSelect.value);
+designer.setPalette({
+  background: bgInput.value,
+  primary: primaryInput.value,
+  accent: accentInput.value
+});
+
+themeSelect.addEventListener('change', () => {
+  designer.setTheme(themeSelect.value);
+});
+bgInput.addEventListener('input', () => {
+  designer.setPalette({ background: bgInput.value });
+});
+primaryInput.addEventListener('input', () => {
+  designer.setPalette({ primary: primaryInput.value });
+});
+accentInput.addEventListener('input', () => {
+  designer.setPalette({ accent: accentInput.value });
+});
+
 for (let y = 0; y < size; y++) {
   for (let x = 0; x < size; x++) {
     const cell = document.createElement('button');

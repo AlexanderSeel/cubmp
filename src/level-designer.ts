@@ -10,6 +10,12 @@ import { LevelData } from './game-engine';
  */
 export class LevelDesigner {
   private grid: string[];
+  private theme?: string;
+  private palette: {
+    background?: string;
+    primary?: string;
+    accent?: string;
+  } = {};
   constructor(
     private width: number,
     private height: number,
@@ -28,7 +34,10 @@ export class LevelDesigner {
 
   /** Create a designer pre-populated from existing {@link LevelData}. */
   static fromData(data: LevelData): LevelDesigner {
-    return new LevelDesigner(data.width, data.height, data.grid);
+    const designer = new LevelDesigner(data.width, data.height, data.grid);
+    if (data.theme) designer.setTheme(data.theme);
+    if (data.palette) designer.setPalette(data.palette);
+    return designer;
   }
 
   /** Mark a cell as a solid block. */
@@ -58,6 +67,20 @@ export class LevelDesigner {
     this.setCell(x, y, 'E');
   }
 
+  /** Set the theme name for the level. */
+  setTheme(theme: string): void {
+    this.theme = theme;
+  }
+
+  /** Update the color palette for the level. */
+  setPalette(palette: {
+    background?: string;
+    primary?: string;
+    accent?: string;
+  }): void {
+    this.palette = { ...this.palette, ...palette };
+  }
+
   private setCell(x: number, y: number, ch: string): void {
     const row = this.grid[y].split('');
     row[x] = ch;
@@ -77,6 +100,10 @@ export class LevelDesigner {
       height: this.height,
       grid: this.grid.slice()
     } as LevelData;
+
+    if (this.theme) data.theme = this.theme;
+    if (this.palette.background || this.palette.primary || this.palette.accent)
+      data.palette = { ...this.palette };
 
     const enemies: { x: number; y: number }[] = [];
     for (let y = 0; y < this.height; y++) {
